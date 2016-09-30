@@ -3,6 +3,7 @@
 #include <string.h>
 #include <math.h>
 #include <Windows.h>
+#include <time.h>
 BYTE R1[128] = { 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, };
 void printArr(BYTE *X, int size){
 	int i;
@@ -583,17 +584,14 @@ int main(int argc, char *argv[]) {
 	BYTE *IV = 0;
 	//======================================>>>>>>>>>>>>>KEY<<<<<<<<<<<<==========================================================
 	//BYTE key[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };//1
-	//BYTE key[16] = { 0xfe, 0xff, 0xe9, 0x92, 0x86, 0x65, 0x73, 0x1c, 0x6d, 0x6a, 0x8f, 0x94, 0x67, 0x30, 0x83, 0x08 };//2
-	BYTE key[16] = { 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x20 };
+	BYTE key[16] = { 0xfe, 0xff, 0xe9, 0x92, 0x86, 0x65, 0x73, 0x1c, 0x6d, 0x6a, 0x8f, 0x94, 0x67, 0x30, 0x83, 0x08 };//2
+	//BYTE key[16] = { 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x20 };
 	BYTE ekey[4 * 44] = { 0, };
+	clock_t time;
 	//=================================================
 	printf("Insert Plaintext\n");
 	while ((ch = getchar()) != '\n')
 	{
-		if ((ch == ' ') || (ch == '\t') || (ch == '\n'))
-			continue;
-		tamp = (char *)realloc(tamp, sizeof(char)*(length + 1));
-		tamp[length] = ch;
 		if ((ch == ' ') || (ch == '\t') || (ch == '\n'))
 			continue;
 		tamp = (char *)realloc(tamp, sizeof(char)*(length + 1));
@@ -638,23 +636,26 @@ int main(int argc, char *argv[]) {
 
 	Y = (BYTE *)realloc(tamp, sizeof(BYTE)*length + A_len+1);
 	X = (BYTE *)realloc(tamp1, sizeof(BYTE)*length + A_len + 1);
-	
+	//time = clock();
+	//========================================================
 	KeyExpansion(key, ekey);
-	//========================================================//
 	gerJ0(IV, J0, ekey, iv_hexlen);   //IV -> J0
 	cpystr(ICB, J0, 16);  // ICB = J0 카피함
 	GCTR(hexlen, n, m, Y, ICB, ekey,0); // GCTR돌림 output Y
 	printf("Output C : \n");
 	printArr(Y, hexlen);
-	len = padding(Y, A,hexlen,A_hexlen);   // Test Vector 2에 고정됨
-	GHASH(len, Y, X,ekey);  //32 80
+	len = padding(Y, A,hexlen,A_hexlen);   
+	GHASH(len, Y, X,ekey); 
 	GCTR(16, 1, X, Y, J0, ekey,1); // GCTR돌림 output Y
 	printf("Output T : \n");
 	printArr(Y, 16);
+	//=========================================================
+	//time = clock() - time;
+	//printf("enc %f sec\n", (double)time / CLOCKS_PER_SEC);
+
 	return 0;
 }
 /*
 	160929
-	IV 가 96bit가 아닐때 오답출력
-	m에 IV가 들어가는 이상한 현상;;
-	*/
+	FIN
+	*/ 
