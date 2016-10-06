@@ -367,7 +367,7 @@ void inc32(BYTE *X){  //complete
 		X[i] = tamp[i - 12];
 	}
 }
-void GCTR(int length, int n, BYTE *m, BYTE *Y, BYTE *ICB, BYTE *ekey,int fin){
+void GCTR(int length, int n, BYTE *m, BYTE *Y, BYTE *ICB, BYTE *ekey, int fin){
 	// hexlen , n , m ,Y (output) , ICB , ekey(AES key expansion) , fin : firstCTR 0 , lastCTR 1
 	int i, j, k, nowlen;
 	BYTE x1[16] = { 0, }, y1[16] = { 0, };
@@ -382,7 +382,7 @@ void GCTR(int length, int n, BYTE *m, BYTE *Y, BYTE *ICB, BYTE *ekey,int fin){
 			for (j = 0; j < 16; j++){
 				x1[j] = m[i * 16 + j];
 			}
-			if (fin==0)
+			if (fin == 0)
 				inc32(ICB);  // ICB_temp -> ICB
 			Encrypt(ICB, CIPH, ekey);
 			for (k = 0; k < 16; k++){
@@ -415,7 +415,7 @@ void GCTR(int length, int n, BYTE *m, BYTE *Y, BYTE *ICB, BYTE *ekey,int fin){
 		}
 	}
 }
-void GHASH(int length, BYTE *X1, BYTE *Y1,BYTE *ekey){
+void GHASH(int length, BYTE *X1, BYTE *Y1, BYTE *ekey){
 	int i, j, n;
 	BYTE zero[16] = { 0, };
 	BYTE tmpY[16] = { 0, };
@@ -436,7 +436,7 @@ void GHASH(int length, BYTE *X1, BYTE *Y1,BYTE *ekey){
 		for (j = 0; j < 16; j++){
 			Y1[j] = tmpY[j] ^ tamp[j];
 		}
-		Encrypt(zero,H,ekey);
+		Encrypt(zero, H, ekey);
 		Multiplication(Y1, H);
 		for (j = 0; j < 16; j++){
 			tmpY[j] = Y1[j];
@@ -452,9 +452,9 @@ int makeN(int length){
 
 	return n;
 }
-void gerJ0(BYTE *iv, BYTE *j,BYTE *ekey, int n){
-//IV j IVhexlen;
-	int i = 0,s,IVlen,k=0;
+void gerJ0(BYTE *iv, BYTE *j, BYTE *ekey, int n){
+	//IV j IVhexlen;
+	int i = 0, s, IVlen, k = 0;
 	BYTE *ivtmp, lenIV[8];
 
 	//printf("%d\n", strlen(iv));
@@ -472,14 +472,14 @@ void gerJ0(BYTE *iv, BYTE *j,BYTE *ekey, int n){
 			IVlen /= 256;
 		}
 		IVlen = n * 8;
-		s = 128 * makeN(n*2) - IVlen;
+		s = 128 * makeN(n * 2) - IVlen;
 		// n + 8*makeN(n*2) + 16;
-		ivtmp = (BYTE*)malloc(sizeof(BYTE)*((IVlen + s + 64 + 64) / 8)+1);
+		ivtmp = (BYTE*)malloc(sizeof(BYTE)*((IVlen + s + 64 + 64) / 8) + 1);
 		memset(ivtmp, 0, (IVlen + s + 64 + 64) / 8 + 1);
 		for (i = 0; i < n; i++){
 			ivtmp[i] = iv[i];
 		}
-		for (i = n; i < n + (s + 64)/8; i++){
+		for (i = n; i < n + (s + 64) / 8; i++){
 			ivtmp[i] = 0x00;
 		}
 		for (i = n + (s + 64) / 8; i < n + (s / 8) + 8 + 8; i++){
@@ -489,13 +489,13 @@ void gerJ0(BYTE *iv, BYTE *j,BYTE *ekey, int n){
 		GHASH((IVlen + s + 64 + 64) / 8, ivtmp, j, ekey);
 	}
 }
-int padding(BYTE *Y,BYTE *A, int C_size,int A_size){ //
+int padding(BYTE *Y, BYTE *A, int C_size, int A_size){ //
 	//size is hex size , need *8
 	BYTE lenC[8]; BYTE lenA[8];
 	BYTE *tamp;
 	int len;
-	int cBlen=C_size*8, aBlen=A_size*8;
-	int max = 16, max2 = 0, i = 0, j = 0, k = 0,val;
+	int cBlen = C_size * 8, aBlen = A_size * 8;
+	int max = 16, max2 = 0, i = 0, j = 0, k = 0, val;
 	if (A == NULL)
 		max2 = 0;
 	else
@@ -526,36 +526,37 @@ int padding(BYTE *Y,BYTE *A, int C_size,int A_size){ //
 	}
 	if (A == NULL){
 		//======================================= [len(A)]64 || [len(C)]64
-		for (i=max; i < max + 8; i++){
+		for (i = max; i < max + 8; i++){
 			Y[i] = lenA[j];
 			j++;
 		}
-		for (i=max+8; i < max + 16; i++){
+		for (i = max + 8; i < max + 16; i++){
 			Y[i] = lenC[k];
 			k++;
 		}
 		val = max + 16;
 	}
 	else{
+		printArr(A, A_size);
 		//=================================== A padding
 		for (i = 0; i < A_size; i++){
 			Y[i] = A[i];
 		}
-		for (i=A_size; i < max2; i++){
+		for (i = A_size; i < max2; i++){
 			Y[i] = 0x00;
 		}
 		//==================================== C padding
-		for (i=max2; i < max2 + max; i++){
+		for (i = max2; i < max2 + max; i++){
 			Y[i] = tamp[k];
 			k++;
 		}
 		k = 0; j = 0;
 		//===================================== lenC lenA
-		for (i=max2+max; i < max2 + max + 8;i++){
+		for (i = max2 + max; i < max2 + max + 8; i++){
 			Y[i] = lenA[j];
 			j++;
 		}
-		for (i=max2+max+8; i < max2 + max + 16; i++){
+		for (i = max2 + max + 8; i < max2 + max + 16; i++){
 			Y[i] = lenC[k];
 			k++;
 		}
@@ -570,9 +571,9 @@ int main(int argc, char *argv[]) {
 	//case 4 : d9313225f88406e5a55909c5aff5269a86a7a9531534f7da2e4c303d8a318a721c3c0c95956809532fcf0e2449a6b525b16aedf5aa0de657ba637b39
 	//0xfe , 0xed, 0xfa ,0xce ,0xde ,0xad ,0xbe ,0xef ,0xfe ,0xed ,0xfa ,0xce ,0xde ,0xad ,0xbe ,0xef ,0xab ,0xad ,0xda ,0xd2
 	//feedfacedeadbeeffeedfacedeadbeefabaddad2
-	BYTE * X; BYTE * Y; BYTE *m = 0; 
-	BYTE *A=0;
-	char *tamp = 0, *tamp1 = 0, *tamp2 = 0,ch;
+	BYTE * X; BYTE * Y; BYTE *m = 0;
+	BYTE *A = 0;
+	char *tamp = 0, *tamp1 = 0, *tamp2 = 0, ch;
 	int n, length = 0, hexlen, nowlen = 0, A_len = 0, A_hexlen = 0, iv_len = 0, iv_hexlen = 0;;
 	int len;
 	BYTE J0[16] = { 0, }, ICB[16] = { 0. };
@@ -583,8 +584,8 @@ int main(int argc, char *argv[]) {
 	//cafebabefacedbad
 	BYTE *IV = 0;
 	//======================================>>>>>>>>>>>>>KEY<<<<<<<<<<<<==========================================================
-	//BYTE key[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };//1
-	BYTE key[16] = { 0xfe, 0xff, 0xe9, 0x92, 0x86, 0x65, 0x73, 0x1c, 0x6d, 0x6a, 0x8f, 0x94, 0x67, 0x30, 0x83, 0x08 };//2
+	BYTE key[16] = { 0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF, 0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF };
+	//BYTE key[16] = { 0xfe, 0xff, 0xe9, 0x92, 0x86, 0x65, 0x73, 0x1c, 0x6d, 0x6a, 0x8f, 0x94, 0x67, 0x30, 0x83, 0x08 };//2
 	//BYTE key[16] = { 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x20 };
 	BYTE ekey[4 * 44] = { 0, };
 	clock_t time;
@@ -614,7 +615,7 @@ int main(int argc, char *argv[]) {
 		tamp1[A_len] = ch;
 		A_len++;
 	}
-	A = (BYTE *)realloc(tamp1, sizeof(BYTE)*(A_len + 1));
+	A = (BYTE *)malloc(sizeof(BYTE)*(A_len + 1));
 	str2hex(tamp1, A, A_len);
 	A_hexlen = A_len / 2;
 	printf("\n");
@@ -634,19 +635,19 @@ int main(int argc, char *argv[]) {
 	printf("\n");
 	//=================================================
 
-	Y = (BYTE *)realloc(tamp, sizeof(BYTE)*length + A_len+1);
+	Y = (BYTE *)realloc(tamp, sizeof(BYTE)*length + A_len + 1);
 	X = (BYTE *)realloc(tamp1, sizeof(BYTE)*length + A_len + 1);
 	//time = clock();
 	//========================================================
 	KeyExpansion(key, ekey);
 	gerJ0(IV, J0, ekey, iv_hexlen);   //IV -> J0
 	cpystr(ICB, J0, 16);  // ICB = J0 카피함
-	GCTR(hexlen, n, m, Y, ICB, ekey,0); // GCTR돌림 output Y
+	GCTR(hexlen, n, m, Y, ICB, ekey, 0); // GCTR돌림 output Y
 	printf("Output C : \n");
 	printArr(Y, hexlen);
-	len = padding(Y, A,hexlen,A_hexlen);   
-	GHASH(len, Y, X,ekey); 
-	GCTR(16, 1, X, Y, J0, ekey,1); // GCTR돌림 output Y
+	len = padding(Y, A, hexlen, A_hexlen);
+	GHASH(len, Y, X, ekey);
+	GCTR(16, 1, X, Y, J0, ekey, 1); // GCTR돌림 output Y
 	printf("Output T : \n");
 	printArr(Y, 16);
 	//=========================================================
@@ -658,4 +659,4 @@ int main(int argc, char *argv[]) {
 /*
 	160929
 	FIN
-	*/ 
+	*/
