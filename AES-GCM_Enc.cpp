@@ -599,7 +599,7 @@ int main(int argc, char *argv[]) {
 		tamp[length] = ch;
 		length++;
 	}
-	m = (BYTE *)realloc(tamp, sizeof(BYTE)*(length + 1));
+	m = (BYTE *)malloc(sizeof(BYTE)*(length + 1));
 	str2hex(tamp, m, length);
 	hexlen = length / 2;
 	n = makeN(length);
